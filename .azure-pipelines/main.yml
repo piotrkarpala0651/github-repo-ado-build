@@ -1,5 +1,7 @@
 trigger:
 - main
+- gh-readonly-queue/*
+
 pr:
 - main
 
