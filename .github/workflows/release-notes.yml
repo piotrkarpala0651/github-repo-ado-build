@@ -28,6 +28,8 @@ jobs:
 
             const releaseId = core.getInput('releaseId') ?? context.payload.release.id;
 
+            core.info(`Updating release notes for release ${releaseId}`);
+
             // Get the release
             const releaseResponse = await github.rest.repos.getRelease({
               owner,
