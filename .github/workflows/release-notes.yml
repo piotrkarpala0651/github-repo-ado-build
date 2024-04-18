@@ -27,11 +27,16 @@ jobs:
             const { owner, repo, release } = context.repo;
 
             console.log('Release event payload:', context.payload.release);
-            console.log('Release Id:', context.payload.release.id);
+            console.log('Release Id:', context.payload.release?.id);
 
             console.dir(context?.payload?.release);
 
             const releaseId = core.getInput('releaseId') || context.payload.release.id;
+
+            if (!releaseId) {
+              core.setFailed('No release id provided');
+              return;
+            }
 
             core.info(`Updating release notes for release ${releaseId}`);
 
