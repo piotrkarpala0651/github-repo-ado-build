@@ -3,7 +3,12 @@ name: Update Release Notes
 on:
   release:
     types: [published]
-
+  workflow_dispatch:
+    inputs:
+        releaseId: 
+            description: 'The Id of the release to update'
+            required: true
+            type: number
 jobs:
   update-release-notes:
     runs-on: ubuntu-latest
@@ -11,27 +16,40 @@ jobs:
     steps:
 
       - name: Update release notes
-        uses: actions/github-script@v3
+        uses: actions/github-script@v7
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
+            const core = require('@actions/core');
+            const httpm = require('@actions/http-client');
             const { owner, repo, release } = context.repo;
+
+            const releaseId = core.getInput('releaseId') ?? context.payload.release.id;
 
             // Get the release
             const releaseResponse = await github.repos.getRelease({
               owner,
               repo,
-              release_id: context.payload.release.id
+              release_id: releaseId
             });
 
             console.log('Current release notes:', releaseResponse.data.body);
 
-            // Update the release notes
-# const newBody = 'Your new release notes here'; // Update this with your new release notes
+            const body = releaseResponse.data.body;
 
-# await github.repos.updateRelease({
-#     owner,
-#     repo,
-#     release_id: context.payload.release.id,
-#     body: newBody
-# });
+            // find all the work item ids, making sure the regex is greedy
+            const workItemIds = body.match(/AB#\d+/g).map((id) => id.replace('AB#', ''));
+
+            // replace all AB#
+            const newBody = body.replace(/AB#(\d+)/g, '[AB#$1](https://dev.azure.com/piotrkarpala0651/github-repo-ado-build/_workitems/edit/$1)');
+
+            console.log('New release notes:', newBody);
+
+            // Update the release notes
+
+            await github.repos.updateRelease({
+                owner,
+                repo,
+                release_id: releaseId,
+                body: newBody
+            });
