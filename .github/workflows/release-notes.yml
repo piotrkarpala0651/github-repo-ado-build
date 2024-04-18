@@ -29,7 +29,7 @@ jobs:
             const releaseId = core.getInput('releaseId') ?? context.payload.release.id;
 
             // Get the release
-            const releaseResponse = await github.repos.getRelease({
+            const releaseResponse = await github.rest.repos.getRelease({
               owner,
               repo,
               release_id: releaseId
@@ -49,7 +49,7 @@ jobs:
 
             // Update the release notes
 
-            await github.repos.updateRelease({
+            await github.rest.repos.updateRelease({
                 owner,
                 repo,
                 release_id: releaseId,
