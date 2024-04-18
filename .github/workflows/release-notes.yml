@@ -51,7 +51,7 @@ jobs:
             const body = releaseResponse.data.body;
 
             // find all the work item ids, making sure the regex is greedy
-            const workItemIds = body.match(/(?<!\[)AB#\d+/g).map((id) => id.replace('AB#', ''));
+            const workItemIds = (body.match(/(?<!\[)AB#\d+/g) || [] ).map((id) => id.replace('AB#', ''));
             
             core.info('Work item ids:', workItemIds);
             
