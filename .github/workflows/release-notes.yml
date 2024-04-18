@@ -26,12 +26,15 @@ jobs:
             const httpm = require('@actions/http-client');
             const { owner, repo, release } = context.repo;
 
+            console.log('Release event payload:', context.payload.release);
+            console.log('Release Id:', context.payload.release.id);
+
             console.dir(context?.payload?.release);
 
             const releaseId = core.getInput('releaseId') || context.payload.release.id;
 
             core.info(`Updating release notes for release ${releaseId}`);
-            
+
 
             // Get the release
             const releaseResponse = await github.rest.repos.getRelease({
