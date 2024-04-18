@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
         releaseId: 
-            description: 'The Id of the release to update'
+            description: 'The Id of the release to update - database Id (integer), not visible in the UI'
             required: true
             type: number
 
@@ -30,10 +30,7 @@ jobs:
             const httpm = require('@actions/http-client');
             const { owner, repo, release } = context.repo;
 
-            console.log('Release event payload:', context.payload.release);
-            console.log('Release Id:', context.payload.release?.id);
-
-            console.dir(context?.payload?.release);
+            core.info('Release event payload:', context.payload.release);
 
             const releaseId = '${{ inputs.releaseId }}' || context.payload.release?.id;
 
@@ -44,7 +41,6 @@ jobs:
 
             core.info(`Updating release notes for release ${releaseId}`);
 
-
             // Get the release
             const releaseResponse = await github.rest.repos.getRelease({
               owner,
@@ -52,17 +48,17 @@ jobs:
               release_id: releaseId
             });
 
-            console.log('Current release notes:', releaseResponse.data.body);
-
             const body = releaseResponse.data.body;
 
             // find all the work item ids, making sure the regex is greedy
-            const workItemIds = body.match(/AB#\d+/g).map((id) => id.replace('AB#', ''));
-
+            const workItemIds = body.match(/(?<!\[)AB#\d+/g).map((id) => id.replace('AB#', ''));
+            
+            core.info('Work item ids:', workItemIds);
+            
             // replace all AB#
-            const newBody = body.replace(/AB#(\d+)/g, '[AB#$1](https://dev.azure.com/piotrkarpala0651/github-repo-ado-build/_workitems/edit/$1)');
+            const newBody = body.replace(/(?<!\[)AB#(\d+)/g, '[AB#$1](https://dev.azure.com/piotrkarpala0651/github-repo-ado-build/_workitems/edit/$1)');
 
-            console.log('New release notes:', newBody);
+            core.info('New release notes:', newBody);
 
             // Update the release notes
 
