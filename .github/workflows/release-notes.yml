@@ -31,7 +31,7 @@ jobs:
 
             console.dir(context?.payload?.release);
 
-            const releaseId = core.getInput('releaseId') || context.payload.release.id;
+            const releaseId = '${{ inputs.releaseId }}' || context.payload.release?.id;
 
             if (!releaseId) {
               core.setFailed('No release id provided');
