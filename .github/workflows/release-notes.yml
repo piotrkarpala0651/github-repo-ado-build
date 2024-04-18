@@ -1,0 +1,37 @@
+name: Update Release Notes
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-release-notes:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Update release notes
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const { owner, repo, release } = context.repo;
+
+            // Get the release
+            const releaseResponse = await github.repos.getRelease({
+              owner,
+              repo,
+              release_id: context.payload.release.id
+            });
+
+            console.log('Current release notes:', releaseResponse.data.body);
+
+            // Update the release notes
+# const newBody = 'Your new release notes here'; // Update this with your new release notes
+
+# await github.repos.updateRelease({
+#     owner,
+#     repo,
+#     release_id: context.payload.release.id,
+#     body: newBody
+# });
