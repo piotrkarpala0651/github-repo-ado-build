@@ -9,6 +9,10 @@ on:
             description: 'The Id of the release to update'
             required: true
             type: number
+
+permissions:
+  contents: write
+
 jobs:
   update-release-notes:
     runs-on: ubuntu-latest
