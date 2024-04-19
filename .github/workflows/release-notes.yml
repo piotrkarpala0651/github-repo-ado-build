@@ -20,14 +20,13 @@ jobs:
     steps:
 
       - name: Install dependencies
-        run: npm install @actions/http-client node-fetch
+        run: npm install node-fetch
 
       - name: Update release notes
         uses: actions/github-script@v7
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            const httpm = require('@actions/http-client');
             const { owner, repo, release } = context.repo;
 
             core.info(`\u001b[35mRelease event payload: ${context.payload.release}`);
@@ -67,19 +66,6 @@ jobs:
 
             // get work item details
             const auth = Buffer.from(`:${{ secrets.ADO_PAT }}`).toString('base64');
-            core.info(`\u001b[35mPAT: ${auth}`);
-
-            const crypto = require('crypto');
-            const hash = crypto.createHash('sha256');
-            hash.update(auth);
-            core.info(`\u001b[35mHASH: ${hash.digest('hex')}`);
-
-            const http = new httpm.HttpClient('read-work-item-titles', [], {
-              headers: {
-                Authorization: `Basic :${auth}`,
-                'Content-Type': 'application/json'
-              }
-            });
 
             const response = await fetch(`https://dev.azure.com/${{ vars.ADO_ORG }}/${{ vars.ADO_PROJECT }}/_apis/wit/workitemsbatch?api-version=7.1-preview.1`, {
               method: 'POST',
@@ -99,7 +85,7 @@ jobs:
               })
             });
             
-            core.info(`\u001b[35m'Work item batch response: ${response.status}`);
+            core.info(`\u001b[35mWork item batch response: ${response.status}`);
             const workItems = await response.json();
 
             if (response.status !== 200) {
@@ -115,7 +101,7 @@ jobs:
               if (workItem) {
                 core.info(`\u001b[35mWork item ${id}: ${workItem.fields['System.WorkItemType']} ${workItem.fields['System.Title']} (${workItem.fields['System.State']})`);
 
-                const regex = new RegExp(`(?<!\[)AB#${id}\\b`, 'g');
+                const regex = new RegExp(`(?<!\\[)AB#${id}\\b`, 'g');
                 newBody = newBody.replace(regex, `[AB#${id} ${workItem.fields['System.WorkItemType']} ${workItem.fields['System.Title']} (${workItem.fields['System.State']})](https://dev.azure.com/piotrkarpala0651/github-repo-ado-build/_workitems/edit/${id})`);
 
               } else {
@@ -123,7 +109,7 @@ jobs:
               }
             }
 
-            core.info(`\u001b[35mNew release notes: ${newBody}`);
+            core.debug(`\u001b[35mNew release notes: ${newBody}`);
 
             // Update the release notes
             await github.rest.repos.updateRelease({
