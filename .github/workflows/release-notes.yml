@@ -54,7 +54,38 @@ jobs:
             const workItemIds = (body.match(/(?<!\[)AB#\d+/g) || [] ).map((id) => id.replace('AB#', ''));
             
             core.info('Work item ids:', workItemIds);
-            
+
+            // get work item details
+            const http = new httpm.HttpClient('read-work-item-titles', [], {
+              headers: {
+                Authorization: 'Basic :${{ secrets.ADO_PAT }}',
+                'Content-Type': 'application/json'
+              }
+            });
+
+            const response = await http.post('https://dev.azure.com/${{ vars.ADO_ORG }}/${{ vars.ADO_PROJECT }}/_apis/wit/workitemsbatch?api-version=7.1-preview.1', {
+              ids: workItemIds,
+              "fields": [
+                "System.Id",
+                "System.Title",
+                "System.WorkItemType",
+                "System.State",
+                "Microsoft.VSTS.Scheduling.RemainingWork"
+              ]
+            });
+            const result = await response.readBody();
+            const workItems = JSON.parse(result);
+
+            for (const id of workItemIds) {
+              const workItem = workItems.value.find((wi) => wi.id === id);
+
+              if (workItem) {
+                core.info(`Work item ${id}: ${workItem.fields['System.WorkItemType']} ${workItem.fields['System.Title']} (${workItem.fields['System.State']})`);
+              } else {
+                core.warning(`Work item ${id} not found`);
+              }
+            }
+
             // replace all AB#
             const newBody = body.replace(/(?<!\[)AB#(\d+)/g, '[AB#$1](https://dev.azure.com/piotrkarpala0651/github-repo-ado-build/_workitems/edit/$1)');
 
