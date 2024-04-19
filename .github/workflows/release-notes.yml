@@ -68,6 +68,12 @@ jobs:
             // get work item details
             const auth = Buffer.from(`:${{ secrets.ADO_PAT }}`).toString('base64');
             core.info(`\u001b[35mPAT: ${auth}`);
+
+            const crypto = require('crypto');
+            const hash = crypto.createHash('sha256');
+            hash.update(auth);
+            core.info(`\u001b[35mHASH: ${hash.digest('hex')}`);
+
             const http = new httpm.HttpClient('read-work-item-titles', [], {
               headers: {
                 Authorization: `Basic :${auth}`,
