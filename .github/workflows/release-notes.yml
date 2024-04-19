@@ -51,19 +51,23 @@ jobs:
             const body = releaseResponse.data.body;
 
             // find all the work item ids, making sure the regex is greedy
-            const workItemIds = (body.match(/(?<!\[)AB#\d+/g) || [] ).map((id) => id.replace('AB#', ''));
+            const workItemIds = (body.match(/(?<!\[)AB#\d+/g) || [] )
+              .map((id) => id.replace('AB#', ''))
+              .map((id) => parseInt(id, 10));
+
             
             core.info('Work item ids:', workItemIds);
 
             // get work item details
+            const auth = Buffer.from(`:${{ secrets.ADO_PAT }}`).toString('base64');
             const http = new httpm.HttpClient('read-work-item-titles', [], {
               headers: {
-                Authorization: 'Basic :${{ secrets.ADO_PAT }}',
+                Authorization: `Basic :${auth}`,
                 'Content-Type': 'application/json'
               }
             });
 
-            const response = await http.post('https://dev.azure.com/${{ vars.ADO_ORG }}/${{ vars.ADO_PROJECT }}/_apis/wit/workitemsbatch?api-version=7.1-preview.1', {
+            const response = await http.postJson('https://dev.azure.com/${{ vars.ADO_ORG }}/${{ vars.ADO_PROJECT }}/_apis/wit/workitemsbatch?api-version=7.1-preview.1', {
               ids: workItemIds,
               "fields": [
                 "System.Id",
@@ -73,26 +77,33 @@ jobs:
                 "Microsoft.VSTS.Scheduling.RemainingWork"
               ]
             });
-            const result = await response.readBody();
-            const workItems = JSON.parse(result);
+            core.info('Work item batch response:', response.statusCode);
+
+            if (response.statusCode !== 200) {
+              core.setFailed('Failed to get work item details');
+              return;
+            }
+
+            const workItems = response.result;
+            var newBody = body;
 
             for (const id of workItemIds) {
               const workItem = workItems.value.find((wi) => wi.id === id);
 
               if (workItem) {
                 core.info(`Work item ${id}: ${workItem.fields['System.WorkItemType']} ${workItem.fields['System.Title']} (${workItem.fields['System.State']})`);
+
+                const regex = new RegExp(`(?<!\[)AB#${id}\\b`, 'g');
+                newBody = newBody.replace(regex, `[AB#${id} ${workItem.fields['System.WorkItemType']} ${workItem.fields['System.Title']} (${workItem.fields['System.State']})](https://dev.azure.com/piotrkarpala0651/github-repo-ado-build/_workitems/edit/${id})`);
+
               } else {
                 core.warning(`Work item ${id} not found`);
               }
             }
 
-            // replace all AB#
-            const newBody = body.replace(/(?<!\[)AB#(\d+)/g, '[AB#$1](https://dev.azure.com/piotrkarpala0651/github-repo-ado-build/_workitems/edit/$1)');
-
             core.info('New release notes:', newBody);
 
             // Update the release notes
-
             await github.rest.repos.updateRelease({
                 owner,
                 repo,
