@@ -30,7 +30,7 @@ jobs:
             const httpm = require('@actions/http-client');
             const { owner, repo, release } = context.repo;
 
-            core.info(`\u001b[35mRelease event payload:${context.payload.release}`);
+            core.info(`\u001b[35mRelease event payload: ${context.payload.release}`);
 
             const releaseId = '${{ inputs.releaseId }}' || context.payload.release?.id;
 
@@ -39,7 +39,7 @@ jobs:
               return;
             }
 
-            core.info(`\u001b[35mUpdating release notes for release ${releaseId}`);
+            core.info(`\u001b[35mUpdating release notes for release: ${releaseId}`);
 
             // Get the release
             const releaseResponse = await github.rest.repos.getRelease({
@@ -48,7 +48,7 @@ jobs:
               release_id: releaseId
             });
 
-            core.info(`\u001b[35mRelease response:${releaseResponse.status}`);
+            core.info(`\u001b[35mRelease response: ${releaseResponse.status}`);
             core.debug('Release response:', releaseResponse.data);
             const body = releaseResponse.data.body;
 
@@ -67,6 +67,7 @@ jobs:
 
             // get work item details
             const auth = Buffer.from(`:${{ secrets.ADO_PAT }}`).toString('base64');
+            core.info(`\u001b[35mPAT: ${auth}`);
             const http = new httpm.HttpClient('read-work-item-titles', [], {
               headers: {
                 Authorization: `Basic :${auth}`,
