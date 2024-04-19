@@ -102,7 +102,7 @@ jobs:
                 core.info(`\u001b[35mWork item ${id}: ${workItem.fields['System.WorkItemType']} ${workItem.fields['System.Title']} (${workItem.fields['System.State']})`);
 
                 const regex = new RegExp(`(?<!\\[)AB#${id}\\b`, 'g');
-                newBody = newBody.replace(regex, `[AB#${id} ${workItem.fields['System.WorkItemType']} ${workItem.fields['System.Title']} (${workItem.fields['System.State']})](https://dev.azure.com/piotrkarpala0651/github-repo-ado-build/_workitems/edit/${id})`);
+                newBody = newBody.replace(regex, `[AB#${id} [${workItem.fields['System.WorkItemType']}] ${workItem.fields['System.Title']} (${workItem.fields['System.State']})](https://dev.azure.com/piotrkarpala0651/github-repo-ado-build/_workitems/edit/${id})`);
 
               } else {
                 core.warning(`\u001b[48;2;255;0;0mWork item ${id} not found`);
