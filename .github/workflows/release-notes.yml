@@ -39,7 +39,7 @@ jobs:
               return;
             }
 
-            core.info(`Updating release notes for release ${releaseId}`);
+            core.info('Updating release notes for release', releaseId);
 
             // Get the release
             const releaseResponse = await github.rest.repos.getRelease({
@@ -48,6 +48,8 @@ jobs:
               release_id: releaseId
             });
 
+            core.info('Release response:', releaseResponse.status);
+            core.debug('Release response:', releaseResponse.data);
             const body = releaseResponse.data.body;
 
             // find all the work item ids, making sure the regex is greedy
@@ -57,6 +59,11 @@ jobs:
 
             
             core.info('Work item ids:', workItemIds);
+
+            if (workItemIds.length === 0) {
+              core.info('No work items found in the release notes');
+              return;
+            }
 
             // get work item details
             const auth = Buffer.from(`:${{ secrets.ADO_PAT }}`).toString('base64');
