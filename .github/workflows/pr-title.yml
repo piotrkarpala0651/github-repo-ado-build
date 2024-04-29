@@ -19,6 +19,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           pass_on_octokit_error: false
 
+      - name: clean labels
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: |
+            bug
+            chore
+            feature
+
       - name: add bug label
         uses: actions-ecosystem/action-add-labels@v1
         if: ${{ contains(github.event.pull_request.title, 'bugfix:') }}
