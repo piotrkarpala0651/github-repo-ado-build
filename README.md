@@ -8,3 +8,5 @@
 this may be a conflict
 
 # Feature 3
+
+# Adding tests
