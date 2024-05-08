@@ -16,6 +16,7 @@ jobs:
     steps:
       - uses: karpikpl/pr-title-checker@main
         id: check
+        continue-on-error: true
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           pass_on_octokit_error: false
@@ -71,3 +72,7 @@ jobs:
           message: |
               ### ✅ PR Title Fixed ✅
               The title of this PR has been updated to match the correct format. Thank you!       
+      
+      - name: Fail if PR title is incorrect
+        if: ${{ steps.check.outputs.success == 'false'}}
+        run: exit 1
