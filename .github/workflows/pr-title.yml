@@ -14,7 +14,8 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: thehanimo/pr-title-checker@v1.4.1
+      - uses: karpikpl/pr-title-checker@main
+        id: check
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           pass_on_octokit_error: false
@@ -22,6 +23,7 @@ jobs:
       - name: clean labels
         uses: actions-ecosystem/action-remove-labels@v1
         with:
+          fail_on_error: false
           labels: |
             bug
             chore
@@ -44,3 +46,28 @@ jobs:
         if: ${{ contains(github.event.pull_request.title, 'feat:') }}
         with:
           labels: feature
+      
+      - name: Add comment to fix PR title
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: ${{ steps.check.outputs.success == 'false'}}
+        with:
+          header: 'PR Title Check'
+          recreate: true
+          message: |
+              ### 🚨 PR Title Needs Formatting 🚨
+              The title of this PR needs to be formatted correctly and include an Azure Boards Reference. 
+              Please update the title to match the format `type: description AB#xxx`. Examples:
+              * `bugfix: fix typo in README.md AB#123`
+              * `chore: update dependencies AB#456`
+              * `feat: add new feature AB#789`
+              * `chore: fixing build pipeline` - no AB reference
+
+      - name: Add comment that PR title is fixed
+        if: ${{ steps.check.outputs.success == 'true'}}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: 'PR Title Check'
+          recreate: true
+          message: |
+              ### ✅ PR Title Fixed ✅
+              The title of this PR has been updated to match the correct format. Thank you!       
