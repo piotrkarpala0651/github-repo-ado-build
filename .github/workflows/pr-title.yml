@@ -71,7 +71,13 @@ jobs:
           recreate: true
           message: |
               ### ✅ PR Title Fixed ✅
-              The title of this PR has been updated to match the correct format. Thank you!       
+              The title of this PR has been updated to match the correct format. Thank you!
+
+              Recommended PR title format `type: description AB#xxx`. Examples:
+              * `bugfix: fix typo in README.md AB#123`
+              * `chore: update dependencies AB#456`
+              * `feat: add new feature AB#789`
+              * `chore: fixing build pipeline` - no AB reference
       
       - name: Fail if PR title is incorrect
         if: ${{ steps.check.outputs.success == 'false'}}
